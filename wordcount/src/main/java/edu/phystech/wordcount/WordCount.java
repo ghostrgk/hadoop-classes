@@ -3,13 +3,11 @@ package edu.phystech.wordcount;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -44,6 +42,38 @@ public class WordCount extends Configured implements Tool {
         }
     }
 
+    public static class ReorderMapper extends Mapper<Text, LongWritable, LongWritable, Text> {
+
+        public void map(Text key, LongWritable value, Context context) throws IOException, InterruptedException {
+            context.write(value, key);
+        }
+    }
+
+    public static class ReordedReducer extends Reducer<LongWritable, Text, Text, LongWritable> {
+
+        public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            for (Text text : values) {
+                context.write(text, key);
+            }
+        }
+    }
+
+    public static class InverseLongComparator extends WritableComparator {
+
+        protected InverseLongComparator() {
+            super(LongWritable.class, true);
+        }
+
+        @Override
+        public int compare(WritableComparable raw_lhs, WritableComparable raw_rhs) {
+            LongWritable lhs = (LongWritable) raw_lhs;
+            LongWritable rhs = (LongWritable) raw_rhs;
+
+            return -1 * lhs.compareTo(rhs);
+        }
+    }
+
+
     public static void main(String[] args) throws Exception {
         ToolRunner.run(new WordCount(), args);
     }
@@ -63,14 +93,40 @@ public class WordCount extends Configured implements Tool {
         countJob.setReducerClass(CountReducer.class);
         countJob.setOutputKeyClass(Text.class);
         countJob.setOutputValueClass(LongWritable.class);
-        countJob.setNumReduceTasks(1);
+        countJob.setNumReduceTasks(10);
 
         countJob.setInputFormatClass(TextInputFormat.class);
         countJob.setOutputFormatClass(TextOutputFormat.class);
 
         TextInputFormat.addInputPath(countJob, new Path(strings[0]));
+        TextOutputFormat.setOutputPath(countJob, new Path(strings[1] + "_tmp"));
+
+
+        Job sortJob = Job.getInstance(conf);
+        sortJob.setJarByClass(WordCount.class);
+
+        sortJob.setMapperClass(ReorderMapper.class);
+        sortJob.setMapOutputKeyClass(LongWritable.class);
+        sortJob.setMapOutputValueClass(Text.class);
+
+        sortJob.setSortComparatorClass(InverseLongComparator.class);
+
+        sortJob.setReducerClass(ReordedReducer.class);
+        sortJob.setOutputKeyClass(Text.class);
+        sortJob.setOutputValueClass(LongWritable.class);
+        sortJob.setNumReduceTasks(1);
+
+        sortJob.setInputFormatClass(TextInputFormat.class);
+        sortJob.setOutputFormatClass(TextOutputFormat.class);
+
+        TextInputFormat.addInputPath(countJob, new Path(strings[1] + "_tmp"));
         TextOutputFormat.setOutputPath(countJob, new Path(strings[1]));
 
-        return countJob.waitForCompletion(true) ? 0 : 1;
+
+        if (!countJob.waitForCompletion(true)) {
+            return 1;
+        }
+
+        return sortJob.waitForCompletion(true) ? 0 : 1;
     }
 }
