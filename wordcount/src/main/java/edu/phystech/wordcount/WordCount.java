@@ -85,6 +85,7 @@ public class WordCount extends Configured implements Tool {
 
         Job countJob = Job.getInstance(conf);
         countJob.setJarByClass(WordCount.class);
+        countJob.setJobName("word count: 1st job");
 
         countJob.setMapperClass(SplitMapper.class);
         countJob.setMapOutputKeyClass(Text.class);
@@ -104,6 +105,7 @@ public class WordCount extends Configured implements Tool {
 
         Job sortJob = Job.getInstance(conf);
         sortJob.setJarByClass(WordCount.class);
+        sortJob.setJobName("word count: 2nd job");
 
         sortJob.setMapperClass(ReorderMapper.class);
         sortJob.setMapOutputKeyClass(LongWritable.class);
