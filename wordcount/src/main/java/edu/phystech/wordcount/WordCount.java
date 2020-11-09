@@ -66,7 +66,7 @@ public class WordCount extends Configured implements Tool {
         countJob.setNumReduceTasks(9);
 
         countJob.setInputFormatClass(TextInputFormat.class);
-        countJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+        countJob.setOutputFormatClass(TextOutputFormat.class);
 
         TextInputFormat.addInputPath(countJob, new Path(strings[0]));
         TextOutputFormat.setOutputPath(countJob, new Path(strings[1]));
