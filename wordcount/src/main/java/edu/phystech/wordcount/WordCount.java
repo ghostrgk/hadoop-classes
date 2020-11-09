@@ -7,7 +7,9 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -49,7 +51,7 @@ public class WordCount extends Configured implements Tool {
         }
     }
 
-    public static class ReordedReducer extends Reducer<LongWritable, Text, Text, LongWritable> {
+    public static class ReorderReducer extends Reducer<LongWritable, Text, Text, LongWritable> {
 
         public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             for (Text text : values) {
@@ -97,10 +99,10 @@ public class WordCount extends Configured implements Tool {
         countJob.setNumReduceTasks(10);
 
         countJob.setInputFormatClass(TextInputFormat.class);
-        countJob.setOutputFormatClass(TextOutputFormat.class);
+        countJob.setOutputFormatClass(SequenceFileOutputFormat.class);
 
         TextInputFormat.addInputPath(countJob, new Path(strings[0]));
-        TextOutputFormat.setOutputPath(countJob, new Path(strings[1] + "_tmp"));
+        SequenceFileOutputFormat.setOutputPath(countJob, new Path(strings[1] + "_tmp"));
 
 
         Job sortJob = Job.getInstance(conf);
@@ -113,15 +115,15 @@ public class WordCount extends Configured implements Tool {
 
         sortJob.setSortComparatorClass(InverseLongComparator.class);
 
-        sortJob.setReducerClass(ReordedReducer.class);
+        sortJob.setReducerClass(ReorderReducer.class);
         sortJob.setOutputKeyClass(Text.class);
         sortJob.setOutputValueClass(LongWritable.class);
         sortJob.setNumReduceTasks(1);
 
-        sortJob.setInputFormatClass(TextInputFormat.class);
+        sortJob.setInputFormatClass(SequenceFileInputFormat.class);
         sortJob.setOutputFormatClass(TextOutputFormat.class);
 
-        TextInputFormat.addInputPath(sortJob, new Path(strings[1] + "_tmp"));
+        SequenceFileInputFormat.addInputPath(sortJob, new Path(strings[1] + "_tmp"));
         TextOutputFormat.setOutputPath(sortJob, new Path(strings[1]));
 
 
