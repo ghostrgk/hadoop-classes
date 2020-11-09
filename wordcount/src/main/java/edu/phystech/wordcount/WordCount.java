@@ -22,8 +22,8 @@ public class WordCount extends Configured implements Tool {
         private final LongWritable count = new LongWritable(1);
 
         public void map(LongWritable basic_key, Text line, Context context) throws IOException, InterruptedException {
-            for (String word : line.toString().split("\\s+")) {
-                key.set(word);
+            for (String word : line.toString().split("[^\\d\\w-_]+")) {
+                key.set(word.toLowerCase());
                 context.write(key, count);
             }
         }
@@ -92,6 +92,8 @@ public class WordCount extends Configured implements Tool {
         countJob.setMapperClass(SplitMapper.class);
         countJob.setMapOutputKeyClass(Text.class);
         countJob.setMapOutputValueClass(LongWritable.class);
+
+        countJob.setCombinerClass(CountReducer.class);
 
         countJob.setReducerClass(CountReducer.class);
         countJob.setOutputKeyClass(Text.class);
