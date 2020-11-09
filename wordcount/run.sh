@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IN_DIR="/data/wiki/en_articles_part"
-OUT_DIR="word_count_had2020008"
+OUT_DIR="word_count"
 
 JAR_NAME="target/wordcount-1.0-SNAPSHOT.jar"
 MAIN_CLASS="edu.phystech.wordcount.WordCount"
