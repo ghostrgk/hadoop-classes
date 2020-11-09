@@ -22,7 +22,7 @@ public class WordCount extends Configured implements Tool {
         private final LongWritable count = new LongWritable(1);
 
         public void map(LongWritable basic_key, Text line, Context context) throws IOException, InterruptedException {
-            for (String word : line.toString().split("\\s+")) {
+            for (String word : line.toString().split(" ")) {
                 key.set(word);
                 context.write(key, count);
             }
