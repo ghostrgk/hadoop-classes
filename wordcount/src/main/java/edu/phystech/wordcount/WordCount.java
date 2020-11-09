@@ -119,8 +119,8 @@ public class WordCount extends Configured implements Tool {
         sortJob.setInputFormatClass(TextInputFormat.class);
         sortJob.setOutputFormatClass(TextOutputFormat.class);
 
-        TextInputFormat.addInputPath(countJob, new Path(strings[1] + "_tmp"));
-        TextOutputFormat.setOutputPath(countJob, new Path(strings[1]));
+        TextInputFormat.addInputPath(sortJob, new Path(strings[1] + "_tmp"));
+        TextOutputFormat.setOutputPath(sortJob, new Path(strings[1]));
 
 
         if (!countJob.waitForCompletion(true)) {
