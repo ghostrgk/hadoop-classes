@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IN_DIR="/data/wiki/en_articles_part"
+IN_DIR="/data/wiki/en_articles"
 OUT_DIR="word_count"
 
 JAR_NAME="target/wordcount-1.0-SNAPSHOT.jar"
