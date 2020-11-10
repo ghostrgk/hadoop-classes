@@ -18,29 +18,29 @@ import java.io.IOException;
 
 public class WordCount extends Configured implements Tool {
     public static class SplitMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
-        private final Text key = new Text();
-        private final LongWritable count = new LongWritable(1);
+        private final Text wordKey = new Text();
+        private final LongWritable one = new LongWritable(1);
 
-        public void map(LongWritable basic_key, Text line, Context context) throws IOException, InterruptedException {
+        public void map(LongWritable offset, Text line, Context context) throws IOException, InterruptedException {
             for (String word : line.toString().split("[^\\d\\w-_]+")) {
-                key.set(word.toLowerCase());
-                context.write(key, count);
+                wordKey.set(word.toLowerCase());
+                context.write(wordKey, one);
             }
         }
     }
 
     public static class CountReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
-        private final LongWritable count = new LongWritable();
+        private final LongWritable countValue = new LongWritable();
 
 
-        public void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text word, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
             long summaryCount = 0;
             for (LongWritable count : values) {
                 summaryCount += count.get();
             }
 
-            count.set(summaryCount);
-            context.write(key, count);
+            countValue.set(summaryCount);
+            context.write(word, countValue);
         }
     }
 
